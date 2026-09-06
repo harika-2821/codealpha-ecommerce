@@ -425,93 +425,48 @@
         // CHECKOUT
         // =========================
 
-        async function checkout() {
+       function checkout() {
 
-            if (cart.length === 0) {
+    if (cart.length === 0) {
 
-                alert("Cart is empty!");
+        alert("Cart is empty!");
 
-                return;
+        return;
+    }
 
-            }
+    let total = 0;
 
-            try {
+    cart.forEach(item => {
 
-                const response = await fetch("/orders", {
+        const quantity = item.quantity || 1;
 
-                    method: "POST",
+        total += item.price * quantity;
 
-                    headers: {
+    });
 
-                        "Content-Type":
-                            "application/json"
+    const orderId =
+        "ORD" + Date.now();
 
-                    },
+    document.getElementById("orderId")
+        .innerText = orderId;
 
-                    body: JSON.stringify({
+    document.getElementById("orderTotal")
+        .innerText = total.toFixed(0);
 
-                        userId: 1,
+    document.getElementById("success")
+        .style.display = "block";
 
-                        items: cart
+    cart = [];
 
-                    })
+    showCart();
 
-                });
+    document.getElementById("success")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
 
-
-                const data =
-                    await response.json();
-
-
-                if (!response.ok || !data.success) {
-
-                    alert(
-                        data.message ||
-                        "Checkout failed"
-                    );
-
-                    return;
-
-                }
-
-
-                document.getElementById("orderId")
-                    .innerText = data.orderId;
-
-
-                document.getElementById("orderTotal")
-                    .innerText =
-                    Number(data.total).toFixed(0);
-
-
-                document.getElementById("success")
-                    .style.display = "block";
-
-
-                cart = [];
-
-                showCart();
-
-
-                document.getElementById("success")
-                    .scrollIntoView({
-                        behavior: "smooth"
-                    });
-
-            }
-
-            catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "Server error while creating order."
-                );
-
-            }
-
-        }
-
+    alert("Order placed successfully! 🎉");
+}
 
         // =========================
         // CONTINUE SHOPPING
