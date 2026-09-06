@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Simple E-Commerce Store</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 20px;
+            color: #222;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        header p {
+            text-align: center;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 20px auto;
+        }
+
+        .product-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+
+        .product-card h3 {
+            font-size: 22px;
+        }
+
+        .product-card p {
+            color: #555;
+        }
+
+        .price {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        button {
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #0ea5e9;
+            color: white;
+        }
+
+        button:hover {
+            background: #0284c7;
+        }
+
+        .cart {
+            background: white;
+            padding: 25px;
+            max-width: 800px;
+            margin: 30px auto;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding: 12px 0;
+        }
+
+        .remove {
+            background: #ef4444;
+        }
+
+        .remove:hover {
+            background: #dc2626;
+        }
+
+        .checkout {
+            background: #16a34a;
+            font-size: 17px;
+            margin-top: 15px;
+        }
+
+        .checkout:hover {
+            background: #15803d;
+        }
+
+        .success {
+            display: none;
+            background: white;
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>🛒 Simple E-Commerce Store</h1>
+        <p>Shop your favourite products</p>
+    </header>
+
+
+    <h2>Our Products</h2>
+
+    <div id="products" class="products">
+        Loading products...
+    </div>
+
+
+    <div class="cart">
+
+        <h2>🛒 Shopping Cart</h2>
+
+        <div id="cart">
+            Cart is empty
+        </div>
+
+        <h3>
+            Total: ₹<span id="total">0</span>
+        </h3>
+
+        <button class="checkout" onclick="checkout()">
+            Checkout
+        </button>
+
+    </div>
+
+
+    <div id="success" class="success">
+
+        <h2>🎉 Order Placed Successfully!</h2>
+
+        <p>
+            Order ID:
+            <strong id="orderId"></strong>
+        </p>
+
+        <p>
+            Total Amount:
+            ₹<strong id="orderTotal"></strong>
+        </p>
+
+        <button onclick="continueShopping()">
+            Continue Shopping
+        </button>
+
+    </div>
+
+
+    <script>
+
+        let cart = [];
+
+
+        // =========================
+        // LOAD PRODUCTS
+        // =========================
+
+        async function loadProducts() {
+
+            try {
+
+                const response = await fetch("/products");
+
+                const products = await response.json();
+
+                const box =
+                    document.getElementById("products");
+
+                box.innerHTML = "";
+
+                products.forEach(product => {
+
+                    box.innerHTML += `
+
+                        <div class="product-card">
+
+                            <h3>
+                                ${product.name}
+                            </h3>
+
+                            <p>
+                                ${product.description || ""}
+                            </p>
+
+                            <p>
+                                Category:
+                                ${product.category || "General"}
+                            </p>
+
+                            <div class="price">
+                                ₹${Number(product.price).toFixed(0)}
+                            </div>
+
+                            <button
+                                onclick='addToCart(${JSON.stringify(product)})'>
+
+                                Add to Cart
+
+                            </button>
+
+                        </div>
+
+                    `;
+
+                });
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                document.getElementById("products").innerHTML =
+                    "Unable to load products.";
+
+            }
+
+        }
+
+
+        // =========================
+        // ADD TO CART
+        // =========================
+
+        function addToCart(product) {
+
+            const existing =
+                cart.find(item => item.id === product.id);
+
+            if (existing) {
+
+                existing.quantity++;
+
+            } else {
+
+                cart.push({
+
+                    id: product.id,
+
+                    name: product.name,
+
+                    price: Number(product.price),
+
+                    quantity: 1
+
+                });
+
+            }
+
+            showCart();
+
+        }
+
+
+        // =========================
+        // SHOW CART
+        // =========================
+
+        function showCart() {
+
+            const cartBox =
+                document.getElementById("cart");
+
+            const totalBox =
+                document.getElementById("total");
+
+            if (cart.length === 0) {
+
+                cartBox.innerHTML =
+                    "Cart is empty";
+
+                totalBox.innerText = "0";
+
+                return;
+
+            }
+
+            cartBox.innerHTML = "";
+
+            let total = 0;
+
+            cart.forEach((item, index) => {
+
+                const itemTotal =
+                    item.price * item.quantity;
+
+                total += itemTotal;
+
+                cartBox.innerHTML += `
+
+                    <div class="cart-item">
+
+                        <div>
+
+                            <strong>
+                                ${item.name}
+                            </strong>
+
+                            <br>
+
+                            ₹${item.price}
+                            ×
+                            ${item.quantity}
+
+                            =
+                            ₹${itemTotal}
+
+                        </div>
+
+                        <div>
+
+                            <button
+                                onclick="changeQuantity(${index}, -1)">
+
+                                -
+
+                            </button>
+
+                            <button
+                                onclick="changeQuantity(${index}, 1)">
+
+                                +
+
+                            </button>
+
+                            <button
+                                class="remove"
+                                onclick="removeItem(${index})">
+
+                                Remove
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            });
+
+            totalBox.innerText =
+                total.toFixed(0);
+
+        }
+
+
+        // =========================
+        // CHANGE QUANTITY
+        // =========================
+
+        function changeQuantity(index, change) {
+
+            cart[index].quantity += change;
+
+            if (cart[index].quantity <= 0) {
+
+                cart.splice(index, 1);
+
+            }
+
+            showCart();
+
+        }
+
+
+        // =========================
+        // REMOVE ITEM
+        // =========================
+
+        function removeItem(index) {
+
+            cart.splice(index, 1);
+
+            showCart();
+
+        }
+
+
+        // =========================
+        // CHECKOUT
+        // =========================
+
+        async function checkout() {
+
+            if (cart.length === 0) {
+
+                alert("Cart is empty!");
+
+                return;
+
+            }
+
+            try {
+
+                const response = await fetch("/orders", {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body: JSON.stringify({
+
+                        userId: 1,
+
+                        items: cart
+
+                    })
+
+                });
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok || !data.success) {
+
+                    alert(
+                        data.message ||
+                        "Checkout failed"
+                    );
+
+                    return;
+
+                }
+
+
+                document.getElementById("orderId")
+                    .innerText = data.orderId;
+
+
+                document.getElementById("orderTotal")
+                    .innerText =
+                    Number(data.total).toFixed(0);
+
+
+                document.getElementById("success")
+                    .style.display = "block";
+
+
+                cart = [];
+
+                showCart();
+
+
+                document.getElementById("success")
+                    .scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Server error while creating order."
+                );
+
+            }
+
+        }
+
+
+        // =========================
+        // CONTINUE SHOPPING
+        // =========================
+
+        function continueShopping() {
+
+            document.getElementById("success")
+                .style.display = "none";
+
+            window.scrollTo({
+
+                top: 0,
+
+                behavior: "smooth"
+
+            });
+
+        }
+
+
+        // =========================
+        // START
+        // =========================
+
+        loadProducts();
+
+        showCart();
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <style>
+        body{
+            font-family:Arial, Helvetica, sans-serif;
+            background:#f4f6f8;
+            margin:0;
+            padding:30px;
+        }
+        h1{
+            text-align:center;
+            color:#1e3a8a;
+            margin-bottom:30px;
+        }
+        #orders{
+            max-width:800px;
+            margin:auto;
+        }
+        .order-card h2{
+            color:#1e3a8a;
+            margin-top:0;
+        }
+        .product{
+            background:#f8fafc;
+            padding:15px;
+            margin:10px 0;
+            border-radius:8px;
+            border-left:4px solid #2563eb;
+        }
+        .total{
+            font-size:20px;
+            font-weight:bold;
+            margin-top:15px;
+            color:#15803d;
+        }
+        .date{
+            color:#666;
+            margin-top:8px;
+        }
+    </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+</head>
+
+<body>
+
+    <h1>📦 My Orders</h1>
+
+    <div id="orders">
+        Loading orders...
+    </div>
+<script>
+    async function loadOrders() {
+        try {
+            const response = await fetch("/orders");
+
+            if (!response.ok) {
+                throw new Error("Failed to load orders");
+            }
+
+            const orders = await response.json();
+
+            const container = document.getElementById("orders");
+
+            if (orders.length === 0) {
+                container.innerHTML = "<p>No orders found.</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+
+            orders.forEach(order => {
+
+                let items = [];
+
+                try {
+                    items = JSON.parse(order.items);
+                } catch (e) {
+                    items = [];
+                }
+
+                let productsHTML = "";
+
+                items.forEach(item => {
+                    productsHTML += `
+                        <div class="product">
+                            <strong>${item.name}</strong>
+                            <br>
+                            Price: ₹${item.price}
+                            <br>
+                            Quantity: ${item.quantity || 1}
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="order-card">
+                        <h2>Order #${order.id}</h2>
+
+                        <h3>Products</h3>
+
+                        ${productsHTML}
+
+                        <p class="total"><strong>total:</strong>
+                            ₹${order.total}
+                        </p>
+
+                        <p class="date"><strong>date:</strong>
+                            ${order.created_at}
+                        </p>
+                    </div>
+                `;
+            });
+
+        } catch (error) {
+            console.error("Orders error:", error);
+
+            document.getElementById("orders").innerHTML =
+                "<p>Failed to load orders.</p>";
+        }
+    }
+
+    loadOrders();
+</script>
+
+</body>
+</html>

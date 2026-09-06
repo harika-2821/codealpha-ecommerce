@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration</title>
+</head>
+
+<body>
+
+    <h1>📝 Create Account</h1>
+
+    <form id="registerForm">
+
+        <input
+            type="text"
+            id="name"
+            placeholder="Name"
+            required
+        >
+
+        <br><br>
+
+        <input
+            type="email"
+            id="email"
+            placeholder="Email"
+            required
+        >
+
+        <br><br>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">
+            Register
+        </button>
+
+    </form>
+
+    <p id="message"></p>
+
+
+    <script>
+
+        document
+            .getElementById("registerForm")
+            .addEventListener("submit", async function(event) {
+
+                event.preventDefault();
+
+                const name =
+                    document.getElementById("name").value;
+
+                const email =
+                    document.getElementById("email").value;
+
+                const password =
+                    document.getElementById("password").value;
+
+
+                try {
+
+                    const response =
+                        await fetch("/register", {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                name: name,
+                                email: email,
+                                password: password
+                            })
+
+                        });
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (data.success) {
+
+                        document.getElementById("message")
+                            .innerText =
+                            "Registration successful! 🎉";
+
+                        document.getElementById("registerForm")
+                            .reset();
+
+                    } else {
+
+                        document.getElementById("message")
+                            .innerText =
+                            data.message;
+
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    document.getElementById("message")
+                        .innerText =
+                        "Server error.";
+
+                }
+
+            });
+
+    </script>
+
+</body>
+</html>
