@@ -187,66 +187,79 @@
         // =========================
 
         async function loadProducts() {
+    try {
 
-            try {
-
-                const response = await fetch("/products");
-
-                const products = await response.json();
-
-                const box =
-                    document.getElementById("products");
-
-                box.innerHTML = "";
-
-                products.forEach(product => {
-
-                    box.innerHTML += `
-
-                        <div class="product-card">
-
-                            <h3>
-                                ${product.name}
-                            </h3>
-
-                            <p>
-                                ${product.description || ""}
-                            </p>
-
-                            <p>
-                                Category:
-                                ${product.category || "General"}
-                            </p>
-
-                            <div class="price">
-                                ₹${Number(product.price).toFixed(0)}
-                            </div>
-
-                            <button
-                                onclick='addToCart(${JSON.stringify(product)})'>
-
-                                Add to Cart
-
-                            </button>
-
-                        </div>
-
-                    `;
-
-                });
-
+        const products = [
+            {
+                id: 1,
+                name: "Laptop",
+                description: "Powerful laptop for everyday use",
+                category: "Electronics",
+                price: 50000
+            },
+            {
+                id: 2,
+                name: "Smartphone",
+                description: "Latest smartphone with great features",
+                category: "Electronics",
+                price: 25000
+            },
+            {
+                id: 3,
+                name: "Headphones",
+                description: "Wireless headphones with clear sound",
+                category: "Accessories",
+                price: 2000
+            },
+            {
+                id: 4,
+                name: "Smart Watch",
+                description: "Modern smartwatch for fitness and daily use",
+                category: "Accessories",
+                price: 3500
             }
+        ];
 
-            catch (error) {
+        const productsElement = document.getElementById("products");
 
-                console.error(error);
+        productsElement.innerHTML = "";
 
-                document.getElementById("products").innerHTML =
-                    "Unable to load products.";
+        products.forEach(product => {
 
-            }
+            const div = document.createElement("div");
 
-        }
+            div.className = "product";
+
+            div.innerHTML = `
+                <h3>${product.name}</h3>
+
+                <p>${product.description}</p>
+
+                <p>
+                    <strong>Category:</strong>
+                    ${product.category}
+                </p>
+
+                <p class="price">
+                    Price: ₹${product.price}
+                </p>
+
+                <button onclick='addToCart(${JSON.stringify(product)})'>
+                    Add to Cart
+                </button>
+            `;
+
+            productsElement.appendChild(div);
+        });
+
+    } catch (error) {
+
+        console.error("Error loading products:", error);
+
+        document.getElementById("products").innerHTML =
+            "Unable to load products.";
+    }
+}
 
 
         // =========================
